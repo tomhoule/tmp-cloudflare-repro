@@ -14,7 +14,14 @@
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const client = new Client({
+		const start = performance.now()
+
+		console.error("here, this should print")
+		console.error("this too")
+
+		const clients: any = {}
+		const client = (origin: string) => {
+			return clients[origin] || new Client({
 		  url: 'https://gql.cruisecritic.net/graphql',
 		  exchanges: [fetchExchange],
 		  fetchOptions: {
@@ -22,15 +29,11 @@ export default {
 		  		'Cache-Control': 'no-cache',
 		  	}
 		  }
-		});
+		})
+		}
 
-		const start = performance.now()
-
-		console.error("here, this should print")
-		console.error("this too")
-
-		const responses = await Promise.all(DOCUMENTS.map(async ([query, variables]) => {
-			const response = await client.query(query, variables)
+		const responses = await Promise.all(DOCUMENTS.map(async ([origin, query, variables]) => {
+			const response = await client(origin).query(query, variables)
 			return {data: response.data, error: response.error?.message }
 		}))
 
@@ -44,8 +47,20 @@ ${JSON.stringify(responses, null, 2)}`);
 	},
 };
 
-const DOCUMENTS: [string, Object][] = [
+const origins = {
+'GQL_META': 'https://prod-cc-graphql-meta.fly.dev/graphql',
+'GQL_PERSONALIZATION': 'https://personalization.graphql.cruisecritic.net/graphql',
+'GQL_SEO': 'https://prod-cc-graphql-seo.fly.dev/graphql',
+'GQL_DB': 'https://prod-cc-graphql-db.fly.dev/graphql',
+'GQL_REVIEWS': 'https://prod-cc-graphql-reviews.fly.dev/graphql',
+'GQL_ANALYTICS': 'https://prod-cc-graphql-analytics.fly.dev/graphql',
+'GQL_SEARCH': 'https://search.graphql.cruisecritic.net/graphql',
+'GQL_PARTNERS': 'https://prod-cc-graphql-partners.fly.dev/graphql',
+}
+
+const DOCUMENTS: [string, string, Object][] = [
 	[
+		origins.GQL_DB,
 		`
  query ShelfItems($listId: Float!, $countryId: Float!) {
   db {
@@ -84,6 +99,7 @@ const DOCUMENTS: [string, Object][] = [
   "countryId": 1
 }	],
 [
+	origins.GQL_PERSONALIZATION,
 	`
 
 query GetPinpointEndpoint($endpoint: String!) {
@@ -107,6 +123,7 @@ query GetPinpointEndpoint($endpoint: String!) {
 	}
 ],
 [
+	origins.GQL_META,
 	`
 		
 query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
@@ -146,6 +163,7 @@ query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
 	}
 ],
 [
+	origins.GQL_META,
 	`
 query ItineraryFilterOptions($destinationId: [Float!], $departureDate: String, $cruiseLineId: [Float!], $shipId: [Float!], $departurePortId: [Float!], $portId: [Float!], $cruiseLength: [String!], $cruiseStyleId: [Float!], $ipCountry: String!, $countryId: Float!) {
   meta {
@@ -242,6 +260,7 @@ query ItineraryFilterOptions($destinationId: [Float!], $departureDate: String, $
 	}
 ],
 [
+	origins.GQL_META,
 	`
 
 query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
@@ -281,6 +300,7 @@ query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
 	}
 ],
 [
+	origins.GQL_META,
 	`
 query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
   meta {
@@ -320,6 +340,7 @@ query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
 	}
 ],
 [
+	origins.GQL_META,
 	`
 		query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
   meta {
@@ -359,6 +380,7 @@ query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
 	}
 ],
 [
+	origins.GQL_META,
 	`
 		
 query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
@@ -398,6 +420,7 @@ query RecombeeShelfSailings($itineraryId: Float!, $ipCountry: String!) {
 	}
 ],
 [
+	origins.GQL_PERSONALIZATION,
 	`
 query PersonalizeUserRecommendations($userId: String!, $campaign: String!) {
   personalization {
@@ -418,6 +441,7 @@ query PersonalizeUserRecommendations($userId: String!, $campaign: String!) {
 	}
 ],
 [
+	origins.GQL_PERSONALIZATION,
 	`
 query PersonalizeUserRecommendations($userId: String!, $campaign: String!) {
   personalization {
@@ -439,13 +463,3 @@ query PersonalizeUserRecommendations($userId: String!, $campaign: String!) {
 ]
 ]
 
-const origins = {
-'GQL_META': 'https://prod-cc-graphql-meta.fly.dev/graphql',
-'GQL_PERSONALIZATION': 'https://personalization.graphql.cruisecritic.net/graphql',
-'GQL_SEO': 'https://prod-cc-graphql-seo.fly.dev/graphql',
-'GQL_DB': 'https://prod-cc-graphql-db.fly.dev/graphql',
-'GQL_REVIEWS': 'https://prod-cc-graphql-reviews.fly.dev/graphql',
-'GQL_ANALYTICS': 'https://prod-cc-graphql-analytics.fly.dev/graphql',
-'GQL_SEARCH': 'https://search.graphql.cruisecritic.net/graphql',
-'GQL_PARTNERS': 'https://prod-cc-graphql-partners.fly.dev/graphql',
-}
