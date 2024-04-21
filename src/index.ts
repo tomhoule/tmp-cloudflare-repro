@@ -438,3 +438,14 @@ query PersonalizeUserRecommendations($userId: String!, $campaign: String!) {
 	}
 ]
 ]
+
+const origins = {
+'GQL_META': 'https://prod-cc-graphql-meta.fly.dev/graphql',
+'GQL_PERSONALIZATION': 'https://personalization.graphql.cruisecritic.net/graphql',
+'GQL_SEO': 'https://prod-cc-graphql-seo.fly.dev/graphql',
+'GQL_DB': 'https://prod-cc-graphql-db.fly.dev/graphql',
+'GQL_REVIEWS': 'https://prod-cc-graphql-reviews.fly.dev/graphql',
+'GQL_ANALYTICS': 'https://prod-cc-graphql-analytics.fly.dev/graphql',
+'GQL_SEARCH': 'https://search.graphql.cruisecritic.net/graphql',
+'GQL_PARTNERS': 'https://prod-cc-graphql-partners.fly.dev/graphql',
+}
